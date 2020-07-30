@@ -13,10 +13,10 @@ conf是一个针对json配置文件的工具库，它具有如下特征
 		fmt.Printf("config:%s content changed!\n", s)
 	})
     // 如果你不关心文件变化，就不用启动监控
-	StartMonitor()
+    StartMonitor()
    // 记得关闭监听
-    defer StopMonitor()
-    /*
+   defer StopMonitor()
+   /*
     * {
         "key10": {
           "key11": [
@@ -29,10 +29,11 @@ conf是一个针对json配置文件的工具库，它具有如下特征
       }
     */
     // 获取复杂的配置项的值, 使用Config()函数，你可以省去传入配置文件
-	val, err := Config().GetString("key10.key11[0].key12")
+    val, err := Config().GetString("key10.key11[0].key12")
+
     // 如果你不关心error，那么可以设置一个默认值，这样可以实现链式调用
     val := Config().GetStringWithDefault("key10.key11[0].key12", "default")
+
     // 如果你有多个配置文件就可以使用这种方法获取指定配置文件的配置项
     val := MultiConfig("default").GetStringWithDefault("key10.key11[0].key12", "default")
-    
 ```
