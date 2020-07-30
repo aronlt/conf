@@ -1,0 +1,26 @@
+{
+  "key1": 1,
+  "key2": "value2",
+  "key3": true,
+  "key4": 0.1,
+  "key5": {
+    "key6": "value6"
+  },
+  "key7": ["key7_1", "key7_2", "key7_3"],
+
+  "key8": {
+    "key9": [1, 2, 3]
+  },
+  "key10": {
+    "key11": [
+      {
+        "key12": "value12",
+        "key13": "value13"
+      },
+      {
+        "key14": "value14",
+        "key15": "value15_new"
+      }
+    ]
+  }
+}
