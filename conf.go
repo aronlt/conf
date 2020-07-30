@@ -1,11 +1,11 @@
-package main
+package conf
 
 import (
 	"bytes"
+	"conf/fileutil"
 	"encoding/json"
 	"errors"
 	"log"
-	"meili_conf/fileutil"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -27,18 +27,18 @@ type MConfig struct {
 	// md5
 	md5 string
 	// 解析过的配置项
-	parsedEntryMap	sync.Map
+	parsedEntryMap sync.Map
 	// 未解析的配置项
 	rawEntryMap map[string]json.RawMessage
-	locker sync.Mutex
+	locker      sync.Mutex
 }
 
 func newMConfig(p string) *MConfig {
 	cf := &MConfig{
 		rawEntryMap: make(map[string]json.RawMessage, 0),
-		dir: filepath.Dir(p),
-		filename: filepath.Base(p),
-		path: p,
+		dir:         filepath.Dir(p),
+		filename:    filepath.Base(p),
+		path:        p,
 	}
 
 	// 空的conf
@@ -90,7 +90,7 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 
 		// 查看是否是数组模式
 		index := -1
-		if elem[len(elem) - 1] == ']' {
+		if elem[len(elem)-1] == ']' {
 			nums := bytes.NewBuffer([]byte{})
 			for i := len(elem) - 2; i >= 0; i-- {
 				if elem[i] == '[' {
@@ -114,20 +114,20 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 		}
 
 		// 更新缓存的key值
-		elem = strings.Trim(elem," ")
+		elem = strings.Trim(elem, " ")
 		shapingKey.WriteString(elem)
 		if index >= 0 {
 			shapingKey.WriteString("[")
 			shapingKey.WriteString(strconv.Itoa(index))
 			shapingKey.WriteString("]")
 		}
-		if i != len(elem) - 1 {
+		if i != len(elem)-1 {
 			shapingKey.WriteString(".")
 		}
 
 		// 查看当前key的内容
 		if val2, ok := rawMap[elem]; ok {
-			if i == len(elems) - 1 {
+			if i == len(elems)-1 {
 				value, err := lastElemHandler(val2, index)
 				return shapingKey.String(), value, err
 			} else {
@@ -241,7 +241,7 @@ func (m *MConfig) GetInt(key string) (int, error) {
 					return 0, err
 				}
 				return intVal, nil
-			}  else {
+			} else {
 				var intSliceVal []int
 				if err := json.Unmarshal(val, &intSliceVal); err != nil {
 					return 0, err

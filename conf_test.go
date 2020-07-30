@@ -1,4 +1,4 @@
-package main
+package conf
 
 import (
 	"fmt"
@@ -55,8 +55,8 @@ func TestGet(t *testing.T) {
 		t.Errorf("GetString(%s), error:%+v", "key7", err)
 	}
 	for i, val := range val6 {
-		if val != fmt.Sprintf("key7_%d", i + 1) {
-			t.Errorf("GetStringSlice(%s) = %s; expected %s", "key7", val, fmt.Sprintf("key7_%d", i + 1))
+		if val != fmt.Sprintf("key7_%d", i+1) {
+			t.Errorf("GetStringSlice(%s) = %s; expected %s", "key7", val, fmt.Sprintf("key7_%d", i+1))
 		}
 	}
 
@@ -65,8 +65,8 @@ func TestGet(t *testing.T) {
 		t.Errorf("GetIntSlice(%s), error:%+v", "key8.key9", err)
 	}
 	for i, val := range val7 {
-		if val != i + 1 {
-			t.Errorf("GetIntSlice(%s) = %d; expected %d", "key8.key9", val, i + 1)
+		if val != i+1 {
+			t.Errorf("GetIntSlice(%s) = %d; expected %d", "key8.key9", val, i+1)
 		}
 	}
 
@@ -74,7 +74,6 @@ func TestGet(t *testing.T) {
 	if err != KeyNotFoundErr {
 		t.Errorf("not exist key check fail, err:%+v", err)
 	}
-
 
 	val12, err := MultiConfig("default").GetString("key10.key11[0].key12")
 	if err != nil || val12 != "value12" {
@@ -90,7 +89,6 @@ func TestGet(t *testing.T) {
 	if err != nil || val12 != "value12" {
 		t.Errorf("GetString(%s) = %s; expected %s, error:%+v", "key10.key11[0].key12", val12, "value12", err)
 	}
-
 
 	_, err = MultiConfig("default").GetString("key10.key110].key12")
 	if err != KeyNotFoundErr {
@@ -110,9 +108,8 @@ func TestMonitor(t *testing.T) {
 	}
 
 	fileutil.Copy("testdir/test.json", "testdir/test.json.back", true)
-	err = fileutil.Copy("testdir/test2.json", "testdir/test.json", true)
-	fmt.Println(err)
-	time.Sleep(monitorDuration * time.Second)
+	fileutil.Copy("testdir/test2.json", "testdir/test.json", true)
+	time.Sleep((monitorDuration + 4) * time.Second)
 	val, err = Config().GetString("key10.key11[1].key15")
 	if err != nil || val != "value15_new" {
 		t.Errorf("GetString(%s) = %s; expected %s, error:%+v", "key10.key11[1].key15", val, "value15_new", err)

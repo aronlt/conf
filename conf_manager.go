@@ -1,9 +1,9 @@
-package main
+package conf
 
 import (
+	"conf/fileutil"
 	"context"
 	"errors"
-	"meili_conf/fileutil"
 	"sync"
 	"time"
 )
@@ -14,17 +14,17 @@ var emptyConfig *MConfig
 const monitorDuration = 10
 
 type MConfigManager struct {
-	confs sync.Map
-	ctx context.Context
-	cancel context.CancelFunc
+	confs    sync.Map
+	ctx      context.Context
+	cancel   context.CancelFunc
 	callback map[string]func(string)
 }
 
-func init()  {
+func init() {
 	ctx, cancel := context.WithCancel(context.Background())
 	configManager = &MConfigManager{
-		ctx: ctx,
-		cancel: cancel,
+		ctx:      ctx,
+		cancel:   cancel,
 		callback: make(map[string]func(string), 0),
 	}
 	emptyConfig = newMConfig("")
@@ -89,9 +89,9 @@ func StartMonitor() {
 func (m *MConfigManager) monitor() {
 	for {
 		select {
-		case <- m.ctx.Done():
+		case <-m.ctx.Done():
 			return
-		case <- time.After(monitorDuration * time.Second):
+		case <-time.After(monitorDuration * time.Second):
 			updatedConfs := sync.Map{}
 			// 检查所有的配置，查看是否有变化
 			m.confs.Range(func(key, value interface{}) bool {
@@ -115,4 +115,3 @@ func (m *MConfigManager) monitor() {
 		}
 	}
 }
-
