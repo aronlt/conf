@@ -91,7 +91,7 @@ func TestGet(t *testing.T) {
 	}
 
 	_, err = MultiConfig("default").GetString("key10.key110].key12")
-	if err != KeyNotFoundErr {
+	if err != InvalidKeyErr {
 		t.Errorf("not eixst key check fail, err:%s", err.Error())
 	}
 }

@@ -34,16 +34,21 @@ type MConfig struct {
 }
 
 func newMConfig(p string) *MConfig {
+	// 空的conf
+	if p == "" {
+		return &MConfig{
+			rawEntryMap: make(map[string]json.RawMessage, 0),
+		}
+	}
+	if ok, err := fileutil.IsFile(p); ok == false {
+		log.Printf("file:%s not exist, err:%+v", p, err)
+		return nil
+	}
 	cf := &MConfig{
 		rawEntryMap: make(map[string]json.RawMessage, 0),
 		dir:         filepath.Dir(p),
 		filename:    filepath.Base(p),
 		path:        p,
-	}
-
-	// 空的conf
-	if p == "" {
-		return cf
 	}
 
 	content, err := fileutil.ReadContent(p)
@@ -83,14 +88,16 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 	rawMap := m.rawEntryMap
 
 	shapingKey := bytes.NewBuffer([]byte{})
+
+	// 对每个split开来的单元进行处理
 	for i, elem := range elems {
 		if elem == "" {
 			return "", nil, InvalidKeyErr
 		}
-
 		// 查看是否是数组模式
 		index := -1
 		if elem[len(elem)-1] == ']' {
+			boundary := false
 			nums := bytes.NewBuffer([]byte{})
 			for i := len(elem) - 2; i >= 0; i-- {
 				if elem[i] == '[' {
@@ -104,6 +111,7 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 					if index < 0 {
 						return "", nil, InvalidSliceIndexErr
 					}
+					boundary = true
 					break
 				} else if elem[i] == ' ' {
 					continue
@@ -111,9 +119,11 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 					nums.WriteByte(elem[i])
 				}
 			}
+			if boundary == false {
+				return "", nil, InvalidKeyErr
+			}
 		}
-
-		// 更新缓存的key值
+		// 从rawMap中找到对应的项，所以这里要生成key字符串
 		elem = strings.Trim(elem, " ")
 		shapingKey.WriteString(elem)
 		if index >= 0 {
@@ -127,6 +137,7 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 
 		// 查看当前key的内容
 		if val2, ok := rawMap[elem]; ok {
+			// 如果已经遍历到最后一个elem，就直接调用处理函数进行处理
 			if i == len(elems)-1 {
 				value, err := lastElemHandler(val2, index)
 				return shapingKey.String(), value, err
@@ -141,6 +152,7 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 						if len(rawSliceMap) <= index {
 							return "", nil, InvalidSliceIndexErr
 						}
+						// 解析失败
 						if err := json.Unmarshal(rawSliceMap[index], &rawMap); err != nil {
 							return "", nil, err
 						}
@@ -150,6 +162,7 @@ func (m *MConfig) travel(key string, lastElemHandler func(val json.RawMessage, i
 				}
 			}
 		} else {
+			// 如果key不存在，就直接返回失败
 			return "", nil, KeyNotFoundErr
 		}
 	}
@@ -399,7 +412,8 @@ func (m *MConfig) GetBool(key string) (bool, error) {
 	}
 }
 
-func (m *MConfig) GetBooSlice(key string) ([]bool, error) {
+func (m *MConfig) GetBoolSlice(key string) ([]bool, error) {
+	// 先从缓存中取出
 	val, ok := m.parsedEntryMap.Load(key)
 	if ok {
 		boolSliceVal, ok := val.([]bool)

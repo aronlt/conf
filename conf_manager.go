@@ -1,9 +1,7 @@
 package conf
 
 import (
-	"conf/fileutil"
 	"context"
-	"errors"
 	"sync"
 	"time"
 )
@@ -34,15 +32,11 @@ func init() {
  * 设置配置文件名和路径信息
  */
 func SetConfig(confName string, fpath string, callback func(string)) error {
-	ok, err := fileutil.IsFile(fpath)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.New("fileutil not exist")
-	}
 	if _, ok := configManager.confs.Load(confName); ok == false {
 		conf := newMConfig(fpath)
+		if conf == nil {
+			return nil
+		}
 		configManager.confs.Store(confName, conf)
 		configManager.callback[confName] = callback
 	}
